@@ -261,3 +261,46 @@ test_that("newGBQR multi-group bagging reports progress across groups and bags",
   expect_true(any(grepl("Adults bag", vapply(events, `[[`, character(1), "detail"))))
   expect_true(any(grepl("Pediatrics bag", vapply(events, `[[`, character(1), "detail"))))
 })
+
+test_that("newGBQR bagging keeps every row when only one season is available", {
+  split_data <- list(
+    "Paraguay___Overall" = list(
+      location = "Paraguay",
+      target_group = "Overall",
+      df_train = tibble(season = c(2022, 2022, 2022), feature = c(1, 2, 3)),
+      x_train = tibble(feature = c(1, 2, 3)),
+      y_train = c(0.1, 0.2, 0.3),
+      x_test = tibble(feature = 4)
+    )
+  )
+
+  train_rows <- integer()
+  common_args <- list(
+    split_data_list = split_data,
+    feat_names = "feature",
+    ref_date = as.Date("2022-10-01"),
+    num_bags = 5,
+    q_levels = 0.5,
+    bag_frac_samples = 0.7,
+    nrounds = 1,
+    learning_rate = 0.05,
+    num_leaves = 2,
+    min_data_in_leaf = 1,
+    feature_fraction = 1,
+    lgb_dataset_fn = function(data, label) {
+      train_rows <<- c(train_rows, nrow(data))
+      list(data = data, label = label)
+    },
+    lgb_train_fn = function(params, data, nrounds) list(params = params),
+    predict_fn = function(object, newdata, ...) rep(0, nrow(newdata))
+  )
+
+  do.call(run_quantile_lgb_bagging_newgbqr_global, common_args)
+  do.call(
+    run_quantile_lgb_bagging_newgbqr_multi_group,
+    c(common_args, list(lgb_importance_fn = function(model) data.frame(Feature = "feature", Gain = 1)))
+  )
+
+  expect_length(train_rows, 10)
+  expect_true(all(train_rows == 3))
+})

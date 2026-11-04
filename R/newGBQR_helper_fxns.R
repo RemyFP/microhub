@@ -410,7 +410,8 @@ run_quantile_lgb_bagging_newgbqr_multi_group <- function(split_data_list, feat_n
     for (b in seq_len(num_bags)) {
       bag_n <- max(1L, floor(length(train_seasons) * bag_frac_samples))
       bag_n <- min(bag_n, length(train_seasons))
-      bag_seasons <- sample(train_seasons, size = bag_n, replace = FALSE)
+      # Index rather than sample(train_seasons): with one season, sample(2022, 1) draws from 1:2022.
+      bag_seasons <- train_seasons[sample.int(length(train_seasons), size = bag_n, replace = FALSE)]
       bag_obs_inds <- df_train$season %in% bag_seasons
       dtrain <- lgb_dataset_fn(data = x_train_mat[bag_obs_inds, , drop = FALSE], label = y_train[bag_obs_inds])
 
@@ -511,7 +512,8 @@ run_quantile_lgb_bagging_newgbqr_global <- function(split_data_list, feat_names,
 
   for (b in seq_len(num_bags)) {
     bag_n <- max(1L, min(floor(length(train_seasons) * bag_frac_samples), length(train_seasons)))
-    bag_seasons <- sample(train_seasons, size = bag_n, replace = FALSE)
+    # Index rather than sample(train_seasons): with one season, sample(2022, 1) draws from 1:2022.
+    bag_seasons <- train_seasons[sample.int(length(train_seasons), size = bag_n, replace = FALSE)]
     bag_idx <- all_df_train$season %in% bag_seasons
     dtrain <- lgb_dataset_fn(
       data = all_x_train_mat[bag_idx, , drop = FALSE],
