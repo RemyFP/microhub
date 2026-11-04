@@ -192,7 +192,8 @@ validate_outside_model <- function(file, reference_df, data_type = "count") {
       reference_date  = as.Date(lubridate::parse_date_time(reference_date,  orders = c("ymd", "mdy"))),
       target_end_date = as.Date(lubridate::parse_date_time(target_end_date, orders = c("ymd", "mdy"))),
       horizon         = as.numeric(horizon),
-      output_type_id  = as.numeric(output_type_id),
+      # Match the identifier type used by built-in model forecasts.
+      output_type_id  = as.character(as.numeric(output_type_id)),
       value           = finalize_forecast_value(as.numeric(value), data_type)
     ) |>
     dplyr::select(model, reference_date, horizon, target_end_date,
