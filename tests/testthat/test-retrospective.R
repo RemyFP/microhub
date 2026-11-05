@@ -333,7 +333,7 @@ test_that("retrospective default settings exactly match model-specific tab param
   expect_length(settings$baseline_regular, 0)
   expect_length(settings$baseline_seasonal, 0)
   expect_length(settings$baseline_opt, 0)
-  expect_equal(names(settings$inla), c("forecast_uncertainty", "use_offset"))
+  expect_equal(names(settings$inla), c("forecast_uncertainty", "use_offset", "seasonal", "interaction"))
   expect_equal(names(settings$copycat), c(
     "recent_weeks_touse",
     "resp_week_range",
